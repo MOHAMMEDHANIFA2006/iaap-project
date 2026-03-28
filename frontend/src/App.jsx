@@ -1,53 +1,64 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import FacultyDashboard from "./pages/FacultyDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
-
-// Component to route to the correct dashboard based on role
-function DashboardRouter() {
-  const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const userRole = localStorage.getItem("role");
-    setRole(userRole);
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return <div style={{ textAlign: "center", padding: "40px" }}>Loading...</div>;
-  }
-
-  if (role === "faculty" || role === "teacher") {
-    return <FacultyDashboard />;
-  } else if (role === "student") {
-    return <Dashboard />;
-  } else {
-    return <Navigate to="/login" replace />;
-  }
-}
+import { useEffect } from "react";
 
 function App() {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "default";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    
+    const isDarkMode = localStorage.getItem("darkMode") !== "false";
+    if (!isDarkMode) {
+      document.documentElement.classList.add("light");
+    } else {
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
 
           <Route
-            path="/dashboard"
+            path="/student-dashboard"
             element={
-              <ProtectedRoute>
-                <DashboardRouter />
+              <ProtectedRoute requiredRole="student">
+                <Dashboard />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/teacher-dashboard"
+            element={
+              <ProtectedRoute requiredRole={["teacher", "faculty"]}>
+                <FacultyDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Keep old /dashboard route for backward compatibility */}
+          <Route
+            path="/dashboard"
+            element={<Navigate to="/student-dashboard" replace />}
           />
 
           <Route path="*" element={<NotFound />} />

@@ -135,3 +135,60 @@ export async function addAttendance(token, { studentId, subject, attendancePerce
   }
   return data;
 }
+
+// Admin User Management API Functions
+export async function fetchUsers(token, role = null) {
+  const url = role ? `${API_BASE_URL}/users?role=${role}` : `${API_BASE_URL}/users`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
+}
+
+export async function createUser(token, userData) {
+  const res = await fetch(`${API_BASE_URL}/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(userData)
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to create user");
+  }
+  return data;
+}
+
+export async function updateUser(token, userId, userData) {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(userData)
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to update user");
+  }
+  return data;
+}
+
+export async function deleteUser(token, userId) {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to delete user");
+  }
+  return data;
+}

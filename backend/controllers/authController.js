@@ -55,6 +55,12 @@ exports.login = async (req, res) => {
 
     res.json({
       token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role
+      },
+      // Keep for backward compatibility
       role: user.role,
       studentId: user.studentId
     });

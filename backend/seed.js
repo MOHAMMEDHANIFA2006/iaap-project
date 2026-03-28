@@ -84,6 +84,11 @@ async function seedDatabase() {
         email: "teacher2@example.com",
         password: hashedPassword,
         role: "teacher"
+      },
+      {
+        email: "admin@example.com",
+        password: hashedPassword,
+        role: "admin"
       }
     ];
 
@@ -142,6 +147,9 @@ async function seedDatabase() {
     console.log("   Email: teacher1@example.com");
     console.log("   Password: password123");
     console.log("   Email: teacher2@example.com");
+    console.log("   Password: password123");
+    console.log("\n👑 Admin Test Credentials:");
+    console.log("   Email: admin@example.com");
     console.log("   Password: password123");
 
     process.exit(0);

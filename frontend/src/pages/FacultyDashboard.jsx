@@ -1,6 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchAllStudents, addMarks, addAttendance } from "../services/api";
+import { motion, AnimatePresence } from "framer-motion";
+import ThemeSettings from "../components/ThemeSettings";
+import { 
+  LogOut, Users, BookOpen, ClipboardCheck, 
+  CheckCircle, AlertCircle, PlusCircle, Settings, GraduationCap
+} from "lucide-react";
 
 export default function FacultyDashboard() {
   const navigate = useNavigate();
@@ -10,20 +16,8 @@ export default function FacultyDashboard() {
   const [activeTab, setActiveTab] = useState("students");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Form states for marks
-  const [marksForm, setMarksForm] = useState({
-    studentId: "",
-    subject: "",
-    internal: "",
-    external: ""
-  });
-
-  // Form states for attendance
-  const [attendanceForm, setAttendanceForm] = useState({
-    studentId: "",
-    subject: "",
-    attendancePercentage: ""
-  });
+  const [marksForm, setMarksForm] = useState({ studentId: "", subject: "", internal: "", external: "" });
+  const [attendanceForm, setAttendanceForm] = useState({ studentId: "", subject: "", attendancePercentage: "" });
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -48,16 +42,12 @@ export default function FacultyDashboard() {
         setLoading(false);
       }
     }
-
     load();
   }, [navigate]);
 
   const handleMarksChange = (e) => {
     const { name, value } = e.target;
-    setMarksForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setMarksForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleMarksSubmit = async (e) => {
@@ -70,7 +60,7 @@ export default function FacultyDashboard() {
         internal: parseInt(marksForm.internal),
         external: parseInt(marksForm.external)
       });
-      setSuccessMessage("✅ Marks added successfully");
+      setSuccessMessage("Marks added successfully!");
       setMarksForm({ studentId: "", subject: "", internal: "", external: "" });
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -81,10 +71,7 @@ export default function FacultyDashboard() {
 
   const handleAttendanceChange = (e) => {
     const { name, value } = e.target;
-    setAttendanceForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setAttendanceForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAttendanceSubmit = async (e) => {
@@ -96,7 +83,7 @@ export default function FacultyDashboard() {
         subject: attendanceForm.subject,
         attendancePercentage: parseInt(attendanceForm.attendancePercentage)
       });
-      setSuccessMessage("✅ Attendance added successfully");
+      setSuccessMessage("Attendance added successfully!");
       setAttendanceForm({ studentId: "", subject: "", attendancePercentage: "" });
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -105,323 +92,188 @@ export default function FacultyDashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-animated flex items-center justify-center">
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+      </div>
+    );
+  }
+
   return (
-    <div style={{ minHeight: "100vh", background: "#f5f5f5", padding: "20px" }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-          <h1 style={{ fontSize: "32px", fontWeight: "bold", color: "#333", margin: "0" }}>Faculty Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            style={{ padding: "10px 20px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "14px", fontWeight: "500" }}
-          >
-            Logout
+    <div className="flex min-h-screen bg-gradient-animated font-inter text-slate-100 overflow-hidden">
+      
+      {/* Sidebar */}
+      <motion.aside initial={{ x: -300 }} animate={{ x: 0 }} transition={{ duration: 0.4 }} className="w-72 bg-slate-900/60 backdrop-blur-2xl border-r border-white/10 flex flex-col z-20 shadow-2xl">
+        <div className="p-8 border-b border-white/5">
+          <h1 className="text-2xl font-outfit font-bold flex items-center gap-3 text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300 tracking-tight">
+            <GraduationCap className="w-8 h-8 text-teal-400" />
+            Faculty Portal
+          </h1>
+        </div>
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {[
+            { id: "students", icon: Users, label: "Students List" },
+            { id: "marks", icon: BookOpen, label: "Add Marks" },
+            { id: "attendance", icon: ClipboardCheck, label: "Add Attendance" },
+            { id: "settings", icon: Settings, label: "Settings" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl font-medium transition-all ${
+                activeTab === tab.id 
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/30 shadow-inner" 
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+        <div className="p-4 border-t border-white/5">
+          <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-all border border-red-500/20 group">
+            <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-bold tracking-wide">LOGOUT</span>
           </button>
         </div>
+      </motion.aside>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-          <button
-            onClick={() => setActiveTab("students")}
-            style={{
-              padding: "10px 20px",
-              background: activeTab === "students" ? "#4f46e5" : "#e5e7eb",
-              color: activeTab === "students" ? "white" : "#333",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontWeight: "600"
-            }}
-          >
-            Students List
-          </button>
-          <button
-            onClick={() => setActiveTab("marks")}
-            style={{
-              padding: "10px 20px",
-              background: activeTab === "marks" ? "#4f46e5" : "#e5e7eb",
-              color: activeTab === "marks" ? "white" : "#333",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontWeight: "600"
-            }}
-          >
-            Add Marks
-          </button>
-          <button
-            onClick={() => setActiveTab("attendance")}
-            style={{
-              padding: "10px 20px",
-              background: activeTab === "attendance" ? "#4f46e5" : "#e5e7eb",
-              color: activeTab === "attendance" ? "white" : "#333",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontWeight: "600"
-            }}
-          >
-            Add Attendance
-          </button>
-        </div>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-        {/* Messages */}
-        {error && (
-          <div style={{ padding: "15px", background: "#fee2e2", borderRadius: "4px", color: "#991b1b", marginBottom: "20px" }}>
-            {error}
-          </div>
-        )}
-        {successMessage && (
-          <div style={{ padding: "15px", background: "#dcfce7", borderRadius: "4px", color: "#166534", marginBottom: "20px" }}>
-            {successMessage}
-          </div>
-        )}
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 z-10 w-full max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <h2 className="text-3xl font-outfit font-bold text-white capitalize">
+              {activeTab === "students" && "Registered Students"}
+              {activeTab === "marks" && "Enter Subject Marks"}
+              {activeTab === "attendance" && "Update Class Attendance"}
+              {activeTab === "settings" && "Faculty Preferences"}
+            </h2>
+            <p className="text-slate-400 mt-2">Manage course records effectively.</p>
+          </motion.div>
 
-        {/* Content */}
-        {loading ? (
-          <div style={{ padding: "40px", background: "white", borderRadius: "8px", textAlign: "center" }}>Loading...</div>
-        ) : (
-          <>
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div key="err" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-6 flex items-center gap-3 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-200">
+                <AlertCircle className="w-5 h-5" /> {error}
+              </motion.div>
+            )}
+            {successMessage && (
+              <motion.div key="succ" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-6 flex items-center gap-3 p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-xl text-emerald-200">
+                <CheckCircle className="w-5 h-5" /> {successMessage}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence mode="wait">
+            {/* Settings Tab */}
+            {activeTab === "settings" && (
+             <motion.div key="settings" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.2 }} className="glass-card shadow-2xl border border-white/10 p-8 text-slate-300">
+               <ThemeSettings />
+             </motion.div>
+            )}
+
             {/* Students List Tab */}
             {activeTab === "students" && (
-              <div style={{ background: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#333", margin: "0 0 15px 0" }}>All Students</h2>
-                {students.length > 0 ? (
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <motion.div key="students" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.2 }} className="glass-card shadow-2xl border border-white/10 overflow-hidden">
+                <div className="overflow-x-auto bg-black/20">
+                  <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr>
-                        <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd", fontWeight: "600", color: "#333", background: "#f9f9f9" }}>Name</th>
-                        <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd", fontWeight: "600", color: "#333", background: "#f9f9f9" }}>Department</th>
-                        <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd", fontWeight: "600", color: "#333", background: "#f9f9f9" }}>Semester</th>
-                        <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd", fontWeight: "600", color: "#333", background: "#f9f9f9" }}>CGPA</th>
+                      <tr className="bg-white/5 text-slate-300 text-xs uppercase tracking-widest border-b border-white/10">
+                        <th className="p-5 font-semibold">Name</th>
+                        <th className="p-5 font-semibold">Department</th>
+                        <th className="p-5 font-semibold text-center">Semester</th>
+                        <th className="p-5 font-semibold text-center">CGPA</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {students.map((student) => (
-                        <tr key={student._id}>
-                          <td style={{ padding: "10px", borderBottom: "1px solid #eee" }}>{student.name}</td>
-                          <td style={{ padding: "10px", borderBottom: "1px solid #eee" }}>{student.department}</td>
-                          <td style={{ padding: "10px", borderBottom: "1px solid #eee" }}>{student.semester}</td>
-                          <td style={{ padding: "10px", borderBottom: "1px solid #eee", fontWeight: "600", color: "#4f46e5" }}>{student.cgpa}</td>
+                    <tbody className="divide-y divide-white/5">
+                      {students.length > 0 ? students.map((student) => (
+                        <tr key={student._id} className="hover:bg-white/5 transition-colors">
+                          <td className="p-5 text-slate-200 font-medium">{student.name}</td>
+                          <td className="p-5 text-slate-400">{student.department}</td>
+                          <td className="p-5 text-slate-400 text-center">{student.semester}</td>
+                          <td className="p-5 text-center">
+                            <span className="px-3 py-1 bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full font-bold text-sm shadow-sm">{student.cgpa}</span>
+                          </td>
                         </tr>
-                      ))}
+                      )) : (
+                        <tr><td colSpan="4" className="p-10 text-center text-slate-500 italic">No students found</td></tr>
+                      )}
                     </tbody>
                   </table>
-                ) : (
-                  <p style={{ color: "#999" }}>No students found</p>
-                )}
-              </div>
+                </div>
+              </motion.div>
             )}
 
             {/* Add Marks Tab */}
             {activeTab === "marks" && (
-              <div style={{ background: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", maxWidth: "500px" }}>
-                <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#333", margin: "0 0 20px 0" }}>Add Marks</h2>
-                <form onSubmit={handleMarksSubmit}>
-                  <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "5px" }}>Student</label>
-                    <select
-                      name="studentId"
-                      value={marksForm.studentId}
-                      onChange={handleMarksChange}
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        fontFamily: "inherit"
-                      }}
-                    >
-                      <option value="">Select a student</option>
-                      {students.map(student => (
-                        <option key={student._id} value={student._id}>
-                          {student.name}
-                        </option>
-                      ))}
+              <motion.div key="marks" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.2 }} className="glass-card border border-white/10 p-8 max-w-2xl mx-auto shadow-2xl">
+                <form onSubmit={handleMarksSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Select Student</label>
+                    <select name="studentId" value={marksForm.studentId} onChange={handleMarksChange} required className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:ring-2 focus:ring-teal-500/50 text-white outline-none [&>option]:bg-slate-900">
+                      <option value="">-- Choose a student --</option>
+                      {students.map(s => <option key={s._id} value={s._id}>{s.name} ({s.department})</option>)}
                     </select>
                   </div>
-
-                  <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "5px" }}>Subject</label>
-                    <input
-                      type="text"
-                      name="subject"
-                      value={marksForm.subject}
-                      onChange={handleMarksChange}
-                      placeholder="e.g., Signals and Systems"
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        boxSizing: "border-box"
-                      }}
-                    />
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Subject Name</label>
+                    <input type="text" name="subject" value={marksForm.subject} onChange={handleMarksChange} placeholder="e.g., Data Structures" required className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:ring-2 focus:ring-teal-500/50 text-white outline-none placeholder-slate-500" />
                   </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "15px" }}>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "5px" }}>Internal</label>
-                      <input
-                        type="number"
-                        name="internal"
-                        value={marksForm.internal}
-                        onChange={handleMarksChange}
-                        placeholder="Max 50"
-                        min="0"
-                        max="50"
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "10px",
-                          border: "1px solid #ddd",
-                          borderRadius: "4px",
-                          fontSize: "14px",
-                          boxSizing: "border-box"
-                        }}
-                      />
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Internal Marks (Max 50)</label>
+                      <input type="number" name="internal" value={marksForm.internal} onChange={handleMarksChange} min="0" max="50" required className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:ring-2 focus:ring-teal-500/50 text-white outline-none" />
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "5px" }}>External</label>
-                      <input
-                        type="number"
-                        name="external"
-                        value={marksForm.external}
-                        onChange={handleMarksChange}
-                        placeholder="Max 50"
-                        min="0"
-                        max="50"
-                        required
-                        style={{
-                          width: "100%",
-                          padding: "10px",
-                          border: "1px solid #ddd",
-                          borderRadius: "4px",
-                          fontSize: "14px",
-                          boxSizing: "border-box"
-                        }}
-                      />
+                      <label className="block text-sm font-medium text-slate-300 mb-2">External Marks (Max 50)</label>
+                      <input type="number" name="external" value={marksForm.external} onChange={handleMarksChange} min="0" max="50" required className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:ring-2 focus:ring-teal-500/50 text-white outline-none" />
                     </div>
                   </div>
-
-                  <button
-                    type="submit"
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      background: "#4f46e5",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                      fontSize: "14px"
-                    }}
-                  >
-                    Add Marks
+                  <button type="submit" className="w-full py-4 mt-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white rounded-xl font-bold tracking-wide shadow-[0_0_20px_rgba(20,184,166,0.4)] transition-all flex items-center justify-center gap-2 group">
+                    <PlusCircle className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                    Submit Final Marks
                   </button>
                 </form>
-              </div>
+              </motion.div>
             )}
 
             {/* Add Attendance Tab */}
             {activeTab === "attendance" && (
-              <div style={{ background: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", maxWidth: "500px" }}>
-                <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#333", margin: "0 0 20px 0" }}>Add Attendance</h2>
-                <form onSubmit={handleAttendanceSubmit}>
-                  <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "5px" }}>Student</label>
-                    <select
-                      name="studentId"
-                      value={attendanceForm.studentId}
-                      onChange={handleAttendanceChange}
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        fontFamily: "inherit"
-                      }}
-                    >
-                      <option value="">Select a student</option>
-                      {students.map(student => (
-                        <option key={student._id} value={student._id}>
-                          {student.name}
-                        </option>
-                      ))}
+              <motion.div key="attendance" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.2 }} className="glass-card border border-white/10 p-8 max-w-2xl mx-auto shadow-2xl">
+                <form onSubmit={handleAttendanceSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Select Student</label>
+                    <select name="studentId" value={attendanceForm.studentId} onChange={handleAttendanceChange} required className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:ring-2 focus:ring-teal-500/50 text-white outline-none [&>option]:bg-slate-900">
+                      <option value="">-- Choose a student --</option>
+                      {students.map(s => <option key={s._id} value={s._id}>{s.name} ({s.department})</option>)}
                     </select>
                   </div>
-
-                  <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "5px" }}>Subject</label>
-                    <input
-                      type="text"
-                      name="subject"
-                      value={attendanceForm.subject}
-                      onChange={handleAttendanceChange}
-                      placeholder="e.g., Signals and Systems"
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        boxSizing: "border-box"
-                      }}
-                    />
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Subject Name</label>
+                    <input type="text" name="subject" value={attendanceForm.subject} onChange={handleAttendanceChange} placeholder="e.g., Computer Networks" required className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:ring-2 focus:ring-teal-500/50 text-white outline-none placeholder-slate-500" />
                   </div>
-
-                  <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "5px" }}>Attendance %</label>
-                    <input
-                      type="number"
-                      name="attendancePercentage"
-                      value={attendanceForm.attendancePercentage}
-                      onChange={handleAttendanceChange}
-                      placeholder="0-100"
-                      min="0"
-                      max="100"
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        boxSizing: "border-box"
-                      }}
-                    />
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Attendance Percentage</label>
+                    <div className="relative">
+                      <input type="number" name="attendancePercentage" value={attendanceForm.attendancePercentage} onChange={handleAttendanceChange} min="0" max="100" placeholder="0-100" required className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:ring-2 focus:ring-teal-500/50 text-white outline-none pr-10" />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
+                    </div>
                   </div>
-
-                  <button
-                    type="submit"
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      background: "#10b981",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                      fontSize: "14px"
-                    }}
-                  >
-                    Add Attendance
+                  <button type="submit" className="w-full py-4 mt-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white rounded-xl font-bold tracking-wide shadow-[0_0_20px_rgba(20,184,166,0.4)] transition-all flex items-center justify-center gap-2 group">
+                    <PlusCircle className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                    Save Attendance Record
                   </button>
                 </form>
-              </div>
+              </motion.div>
             )}
-          </>
-        )}
-      </div>
+          </AnimatePresence>
+        </div>
+      </main>
     </div>
   );
 }
