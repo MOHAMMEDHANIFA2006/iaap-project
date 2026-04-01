@@ -1,190 +1,194 @@
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api`.replace(/\/+/g, '/'),
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// Add request interceptor to include auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor to handle auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid - clear local storage and redirect
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('role');
-      localStorage.removeItem('studentId');
-      
-      // Redirect to login if not already there
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api`;
 
 export async function login({ email, password }) {
-  try {
-    const response = await api.post('/auth/login', { email, password });
-    return response.data;
-  } catch (error) {
-    const message = error.response?.data?.message || "Invalid credentials";
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const message = data?.message || "Invalid credentials";
     throw new Error(message);
   }
+  return data;
 }
 
 export async function register({ email, password, role = "student", studentId }) {
-  try {
-    const response = await api.post('/auth/register', {
+  const res = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
       email,
       password,
       role,
       studentId
-    });
-    return response.data;
-  } catch (error) {
-    const message = error.response?.data?.message || "Registration failed";
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const message = data?.message || "Registration failed";
     throw new Error(message);
   }
+  return data;
 }
 
 export async function fetchStudentDetails(token, studentId) {
-  try {
-    const response = await api.get(`/students/${studentId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch student details");
-  }
+  const res = await fetch(`${API_BASE_URL}/students/${studentId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch student details");
+  return res.json();
 }
 
 export async function fetchAttendance(token, studentId) {
-  try {
-    const response = await api.get(`/attendance/${studentId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch attendance");
-  }
+  const res = await fetch(`${API_BASE_URL}/attendance/${studentId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch attendance");
+  return res.json();
 }
 
 export async function fetchMarks(token, studentId) {
-  try {
-    const response = await api.get(`/marks/${studentId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch marks");
-  }
+  const res = await fetch(`${API_BASE_URL}/marks/${studentId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch marks");
+  return res.json();
 }
 
 export async function fetchAssignments(token, studentId) {
-  try {
-    const response = await api.get(`/assignments/${studentId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch assignments");
-  }
+  const res = await fetch(`${API_BASE_URL}/assignments/${studentId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch assignments");
+  return res.json();
 }
 
 export async function fetchFullAnalytics({ token, studentId }) {
-  try {
-    const response = await api.get(`/analytics/full/${studentId}`);
-    return response.data;
-  } catch (error) {
-    const message = error.response?.data?.message || "Failed to load analytics";
+  const res = await fetch(`${API_BASE_URL}/analytics/full/${studentId}`, {
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const message = data?.message || "Failed to load analytics";
     throw new Error(message);
   }
+  return data;
 }
 
 // Faculty API Functions
 export async function fetchAllStudents(token) {
-  try {
-    const response = await api.get('/faculty/students');
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch students");
-  }
+  const res = await fetch(`${API_BASE_URL}/faculty/students`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch students");
+  return res.json();
 }
 
 export async function addMarks(token, { studentId, subject, internal, external }) {
-  try {
-    const response = await api.post('/faculty/marks', {
+  const res = await fetch(`${API_BASE_URL}/faculty/marks`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
       studentId,
       subject,
       internal,
       external
-    });
-    return response.data;
-  } catch (error) {
-    const message = error.response?.data?.message || "Failed to add marks";
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const message = data?.message || "Failed to add marks";
     throw new Error(message);
   }
+  return data;
 }
 
 export async function addAttendance(token, { studentId, subject, attendancePercentage }) {
-  try {
-    const response = await api.post('/faculty/attendance', {
+  const res = await fetch(`${API_BASE_URL}/faculty/attendance`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
       studentId,
       subject,
       attendancePercentage
-    });
-    return response.data;
-  } catch (error) {
-    const message = error.response?.data?.message || "Failed to add attendance";
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const message = data?.message || "Failed to add attendance";
     throw new Error(message);
   }
+  return data;
 }
 
 // Admin User Management API Functions
 export async function fetchUsers(token, role = null) {
-  try {
-    const url = role ? `/users?role=${role}` : '/users';
-    const response = await api.get(url);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch users");
-  }
+  const url = role ? `${API_BASE_URL}/users?role=${role}` : `${API_BASE_URL}/users`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
 }
 
 export async function createUser(token, userData) {
-  try {
-    const response = await api.post('/users', userData);
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.message || "Failed to create user");
+  const res = await fetch(`${API_BASE_URL}/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(userData)
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to create user");
   }
+  return data;
 }
 
 export async function updateUser(token, userId, userData) {
-  try {
-    const response = await api.put(`/users/${userId}`, userData);
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.message || "Failed to update user");
+  const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(userData)
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to update user");
   }
+  return data;
 }
 
 export async function deleteUser(token, userId) {
-  try {
-    const response = await api.delete(`/users/${userId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.message || "Failed to delete user");
+  const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to delete user");
   }
+  return data;
 }
