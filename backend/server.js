@@ -11,7 +11,7 @@ const userRoutes = require("./routes/userRoutes");
 connectDB();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
