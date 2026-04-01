@@ -37,6 +37,11 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Check if email and password are provided
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please enter all fields" });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -48,24 +53,20 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id },
       JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
 
-    res.json({
+    res.status(200).json({
       token,
       user: {
         id: user._id,
-        email: user.email,
-        role: user.role
-      },
-      // Keep for backward compatibility
-      role: user.role,
-      studentId: user.studentId
+        email: user.email
+      }
     });
 
   } catch (err) {
-    res.status(500).json({ message: "Login failed" });
+    res.status(500).json({ message: "Server error" });
   }
 };
