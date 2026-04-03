@@ -19,11 +19,22 @@ const app = express();
 app.use(express.json({ limit: '10kb' }));
 
 // 2. CORS Configuration
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || "https://your-frontend.vercel.app",
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173", // Vite default port
+  process.env.FRONTEND_URL || "https://your-vercel-app.vercel.app"
+];
+
+app.use(cors({
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.indexOf(origin) === -1){
+      return callback(new Error("CORS not allowed"), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
-};
-app.use(cors(corsOptions));
+}));
 
 // 3. Security Middleware
 app.use(helmet());
