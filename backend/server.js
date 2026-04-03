@@ -25,7 +25,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL || "https://your-vercel-app.vercel.app"
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function(origin, callback){
     if(!origin) return callback(null, true);
     if(allowedOrigins.indexOf(origin) === -1){
@@ -33,8 +33,13 @@ app.use(cors({
     }
     return callback(null, true);
   },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle preflight requests
 
 // 3. Security Middleware
 app.use(helmet());
