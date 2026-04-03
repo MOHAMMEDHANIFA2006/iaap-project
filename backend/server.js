@@ -15,9 +15,27 @@ connectDB();
 
 const app = express();
 
-// Security Middleware
+// 1. Body Parser
+app.use(express.json({ limit: '10kb' }));
+
+// 2. CORS Configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "https://your-frontend.vercel.app",
+  credentials: true
+};
+app.use(cors(corsOptions));
+
+// 3. Security Middleware
 app.use(helmet());
-app.use(mongoSanitize());
+
+// 4. Mongo Sanitize (Manual)
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.headers) mongoSanitize.sanitize(req.headers);
+  // Skipped req.query to avoid "Cannot set property query" error in Express
+  next();
+});
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -29,18 +47,8 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-// CORS Configuration
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || "https://your-frontend.vercel.app",
-  credentials: true
-};
-app.use(cors(corsOptions));
-
-// Body Parser
-app.use(express.json({ limit: '10kb' })); // Limit body size for security
-
 app.get("/", (req, res) => {
-  res.send("Academic Analytics Backend Running");
+  res.send("API is running");
 });
 
 app.use("/api/auth", authRoutes);
