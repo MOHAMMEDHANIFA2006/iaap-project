@@ -1,11 +1,9 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable is not defined");
-}
+const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -16,7 +14,13 @@ module.exports = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    // Fetch full user to get studentId
+    const user = await User.findById(decoded.id);
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+      studentId: user?.studentId
+    };
     next();
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });

@@ -2,10 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable is not defined");
-}
+const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
 
 // REGISTER
 exports.register = async (req, res) => {
@@ -56,19 +53,19 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       JWT_SECRET,
       { expiresIn: "7d" }
     );
 
     res.status(200).json({
       token,
-      studentId: user.studentId,
       user: {
         id: user._id,
         email: user.email,
         role: user.role
-      }
+      },
+      studentId: user.studentId
     });
 
   } catch (err) {
