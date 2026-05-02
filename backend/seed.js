@@ -2,7 +2,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const Student = require("./models/Student");
 const Marks = require("./models/Marks");
-const Attendance = require("./models/Attendance");
+const Attendan;ce = require("./models/Attendance");
 const User = require("./models/User");
 const bcrypt = require("bcryptjs");
 

@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { fetchFullAnalytics } from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeSettings from "../components/ThemeSettings";
+import CGPACalculator from "./CGPACalculator";
 import { 
   LogOut, User, BookOpen, AlertTriangle, Settings, LayoutDashboard,
   TrendingUp, Award, Activity, CheckCircle, XCircle,
-  SlidersHorizontal, Target, HelpCircle, Cpu
+  SlidersHorizontal, Target, HelpCircle, Cpu, Calculator
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -24,26 +25,32 @@ export default function Dashboard() {
     navigate("/login", { replace: true });
   };
 
+  const loadAnalytics = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      const studentId = localStorage.getItem("studentId");
+      const data = await fetchFullAnalytics({ token, studentId });
+      setAnalytics(data);
+    } catch (err) {
+      setError(err.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const studentId = localStorage.getItem("studentId");
     if (!token || !studentId) return navigate("/login", { replace: true });
 
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        const data = await fetchFullAnalytics({ token, studentId });
-        setAnalytics(data);
-      } catch (err) {
-        setError(err.message || "Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
+    loadAnalytics();
   }, [navigate]);
+
+  const refreshAnalytics = () => {
+    loadAnalytics();
+  };
 
   const student = analytics?.student ?? {};
   const marks = analytics?.marks ?? [];
@@ -57,7 +64,7 @@ export default function Dashboard() {
       : 0;
 
   // New Derived Dynamic Logic tailored to ECE Profile
-  const currentCGPA = Number(student.cgpa) || 7.2;
+  const currentCGPA = Number(analytics?.cgpa) || Number(student.cgpa) || 7.2;
   const currentSemester = Number(student.semester) || 6;
   
   // "What-if" Predictor Logic
@@ -130,8 +137,7 @@ export default function Dashboard() {
             { id: "overview", icon: Activity, label: "Overview" },
             { id: "profile", icon: User, label: "Profile Status" },
             { id: "marks", icon: Award, label: "Subject Marks" },
-            { id: "attendance", icon: BookOpen, label: "Attendance" },
-            { id: "settings", icon: Settings, label: "Settings" }
+            { id: "attendance", icon: BookOpen, label: "Attendance" },            { id: "cgpa", icon: Calculator, label: "CGPA Calculator" },            { id: "settings", icon: Settings, label: "Settings" }
           ].map(tab => (
             <button
               key={tab.id}
@@ -187,6 +193,13 @@ export default function Dashboard() {
           ) : (
             <AnimatePresence mode="wait">
               
+              {/* CGPA Calculator Tab */}
+              {activeTab === "cgpa" && (
+                <motion.div key="cgpa" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.2 }} className="glass-card shadow-2xl border border-white/10 p-8 text-slate-300">
+                  <CGPACalculator onSave={refreshAnalytics} />
+                </motion.div>
+              )}
+
               {/* Settings Tab */}
               {activeTab === "settings" && (
                 <motion.div key="settings" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.2 }} className="glass-card shadow-2xl border border-white/10 p-8 text-slate-300">
@@ -376,7 +389,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between p-4 glass-panel items-center hover:bg-white/10 transition-colors">
                       <span className="text-slate-400 text-sm uppercase tracking-wider font-semibold">Cumulative GPA</span>
-                      <span className="text-xl font-bold text-emerald-400">{student.cgpa ?? "-"}</span>
+                      <span className="text-xl font-bold text-emerald-400">{currentCGPA.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between p-4 glass-panel items-center hover:bg-white/10 transition-colors">
                       <span className="text-slate-400 text-sm uppercase tracking-wider font-semibold">Database ID</span>

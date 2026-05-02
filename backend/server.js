@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
 const userRoutes = require("./routes/userRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 
 connectDB();
 
@@ -24,6 +25,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/student", studentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
